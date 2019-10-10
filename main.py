@@ -1,4 +1,5 @@
 
+import re
 
 # 父类
 class SearchEnginBase(object):
@@ -30,6 +31,48 @@ class SimpleEngine(SearchEnginBase):
 			if query in text:
 				results.append(id)
 		return results
+
+#搜索模型 词袋模型 nlp领域最简单最常见的模型
+class BOWEngine(SearchEnginBase):
+    def __init__(self):
+        super(BOWEngine, self).__init__()
+        self.__id_to_words = {}
+
+    def process_corpus(self, id, text):
+        self.__id_to_words[id] = self.parse_text_to_words(text)
+	
+	#执行查询
+    def search(self, query):
+        query_words = self.parse_text_to_words(query)
+        results = []
+        for id, words in self.__id_to_words.items():
+            if self.query_match(query_words, words):
+                results.append(id)
+        return results
+    
+	#词是否在词袋中
+    @staticmethod
+    def query_match(query_words, words):
+        for query_word in query_words:
+            if query_word not in words:
+                return False
+        return True
+	
+	#静态函数将文章打碎形成词袋
+    @staticmethod
+    def parse_text_to_words(text):
+        # 使用正则表达式去除标点符号和换行符
+        text = re.sub(r'[^\w ]', ' ', text)
+        # 转为小写
+        text = text.lower()
+        # 生成所有单词的列表
+        word_list = text.split(' ')
+        # 去除空白单词
+        word_list = filter(None, word_list)
+        # 返回单词的 set
+		# set()创建集合
+        return set(word_list)
+
 		
 def main(search_engine):
 	for file_path in ['1.txt','2.txt','3.txt','4.txt','5.txt']:
@@ -41,7 +84,9 @@ def main(search_engine):
 		print('found{}result(s):'.format(len(results)))
 		for result in results:
 			print(result)
-			
-			
-search_engine = SimpleEngine()
+					
+#search_engine = SimpleEngine()
+#main(search_engine)
+
+search_engine = BOWEngine()
 main(search_engine)
